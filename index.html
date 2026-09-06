@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>أبشر العراق - Absher Iraq</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+:root{
+    --red:#d9534f;
+    --red-dark:#c9302c;
+    --bg:#fdf8f8;
+    --soft:#faeaea;
+    --dark:#1E2923;
+    --gray:#667069;
+}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Segoe UI,Tahoma,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+}
+
+body{
+    background:var(--bg);
+    color:var(--dark);
+    padding-bottom:76px;
+}
+
+/* شاشة الترحيب الأولى باللون الأحمر */
+#welcomeScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #d9534f, #c9302c);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    text-align: center;
+    padding: 20px;
+    transition: 0.5s ease;
+}
+#welcomeScreen h1 { font-size: 2.2rem; margin-bottom: 10px; font-weight: bold; }
+#welcomeScreen p { font-size: 1.1rem; margin-bottom: 30px; opacity: 0.9; }
+#welcomeScreen button {
+    background: white;
+    color: #d9534f;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* شاشة تسجيل الاسم ورقم الهاتف */
+#authScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+    padding: 20px;
+}
+.auth-card {
+    background: white;
+    width: 100%;
+    max-width: 380px;
+    padding: 30px 20px;
+    border-radius: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    text-align: center;
+}
+.auth-card h2 { color: var(--red); margin-bottom: 15px; }
+
+header{
+    background: white;
+    padding: 12px 16px;
+    position:sticky;
+    top:0;
+    z-index:1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.header-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.search{
+    flex:1;
+    background:#fff;
+    border:1px solid #e2e8e4;
+    border-radius:30px;
+    padding:9px 14px;
+    display:flex;
+}
+
+.search input{
+    border:0;
+    outline:0;
+    width:100%;
+    background:transparent;
+}
+
+.icons{
+    display:flex;
+    gap:5px;
+}
+
+.icon{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:#fff;
+    border:1px solid #e2e8e4;
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+}
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+}
+
+.banner{
+    margin:15px 16px;
+    height:160px;
+    overflow:hidden;
+    border-radius:24px;
+    box-shadow: 0 4px 12px rgba(217, 83, 79, 0.2);
+}
+
+.slider{
+    display:flex;
+    direction:ltr;
+    width:300%;
+    height:100%;
+    transition:.5s;
+}
+
+.slide{
+    flex:0 0 33.333%;
+    display:grid;
+    place-items:center;
+    text-align:center;
+    color:#fff;
+    font-size:1.25rem;
+    font-weight:bold;
+    padding:20px;
+    direction:rtl;
+}
+
+.s1{ background:linear-gradient(135deg,#d9534f,#c9302c); }
+.s2{ background:linear-gradient(135deg,#e06f6c,#d9534f); }
+.s3{ background:linear-gradient(135deg,#eb8b88,#e06f6c); }
+
+.title{
+    margin:18px 16px 10px;
+    color:var(--red);
+    font-size:1.15rem;
+    font-weight:800;
+}
+
+.categories{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin:0 16px;
+}
+
+.cat{
+    text-align:center;
+    cursor:pointer;
+}
+
+.cat i{
+    width:64px;
+    height:64px;
+    background:var(--soft);
+    border-radius:20px;
+    display:grid;
+    place-items:center;
+    margin:auto;
+    font-style:normal;
+    font-size:1.7rem;
+    border:1px solid #f5c6cb;
+}
+
+.cat b{
+    font-size:.75rem;
+}
+
+.stores{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin:0 16px;
+}
+
+.store{
+    background:#fff;
+    border:1px solid #e2e8e4;
+    border-radius:18px;
+    padding:12px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    cursor:pointer;
+}
+
+.avatar{
+    width:54px;
+    height:54px;
+    border-radius:50%;
+    background:var(--soft);
+    display:grid;
+    place-items:center;
+    font-size:1.5rem;
+}
+
+.info{
+    flex:1;
+}
+
+.info strong{
+    display:block;
+}
+
+.info small{
+    color:var(--gray);
+}
+
+.rating{
+    color:#e67e22;
+    font-size:.8rem;
+}
+
+.card{
+    background:#fff;
+    border:1px solid #e2e8e4;
+    border-radius:24px;
+    margin:16px;
+    padding:18px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+    margin:0 16px;
+}
+
+.product{
+    background:#fff;
+    border:1px solid #e8efea;
+    border-radius:18px;
+    padding:10px;
+    text-align:center;
+}
+
+.pic{
+    height:105px;
+    background:#fdf4f4;
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    font-size:2.6rem;
+}
+
+.price{
+    color:var(--red);
+    font-weight:bold;
+    margin:6px;
+}
+
+.btn{
+    width:100%;
+    border:0;
+    border-radius:11px;
+    padding:12px;
+    background:var(--red);
+    color:#fff;
+    font-weight:bold;
+    cursor:pointer;
+    font-size: 1rem;
+}
+.btn:hover { background: var(--red-dark); }
+
+.red{
+    background:#c0392b;
+}
+
+input,
+select{
+    width:100%;
+    padding:12px;
+    margin:6px 0 13px;
+    border:1px solid #d0dcd4;
+    border-radius:10px;
+    background:#fafcfa;
+    outline:0;
+}
+
+label{
+    font-size:.88rem;
+    font-weight:bold;
+}
+
+#map{
+    height:280px;
+    border-radius:18px;
+    margin:12px 0;
+}
+
+.empty{
+    text-align:center;
+    color:var(--gray);
+    padding:30px;
+}
+
+.order{
+    border:1px solid #e2e8e4;
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:10px;
+}
+
+.nav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:66px;
+    background:#fff;
+    border-top:1px solid #e2e8e4;
+    display:flex;
+    z-index:2000;
+}
+
+.nav div{
+    flex:1;
+    text-align:center;
+    padding-top:7px;
+    font-size:.7rem;
+    color:var(--gray);
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.nav .active{
+    color:var(--red);
+}
+
+.nav span{
+    display:block;
+    font-size:1.3rem;
+}
+
+.toast{
+    position:fixed;
+    bottom:80px;
+    left:50%;
+    transform:translate(-50%,20px);
+    background:#1e2923;
+    color:#fff;
+    padding:11px 17px;
+    border-radius:13px;
+    opacity:0;
+    transition:.3s;
+    z-index:3000;
+}
+
+.toast.show{
+    opacity:1;
+    transform:translate(-50%,0);
+}
+</style>
+</head>
+
+<body>
+
+<div id="welcomeScreen">
+    <h1>أبشر العراق</h1>
+    <p>أهلاً بك، تطبيق أبشر يرحب بكم 🌹</p>
+    <button onclick="goToAuth()">اضغط للدخول</button>
+</div>
+
+<div id="authScreen">
+    <div class="auth-card">
+        <h2>تسجيل الدخول</h2>
+        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">أدخل اسمك ورقم هاتفك للمتابعة</p>
+        <label>الاسم الثلاثي</label>
+        <input id="userNameInput" placeholder="مثال: علي حسين محمد">
+        <label>رقم الهاتف</label>
+        <input id="userPhoneInput" inputmode="tel" placeholder="07XXXXXXXXX">
+        <button class="btn" onclick="saveUserAndEnter()">دخول للتطبيق</button>
+    </div>
+</div>
+
+<header>
+<div class="header-top">
+<div class="search">
+<input id="search" placeholder="ابحث عن متجر، منتج، أو قسم...">
+<span>🔍</span>
+</div>
+<div class="icons">
+<div class="icon" onclick="go('location')">📍</div>
+<div class="icon" onclick="toast('لا توجد إشعارات جديدة 🔔')">🔔</div>
+<div class="icon" onclick="go('cart')">🛒</div>
+</div>
+</div>
+</header>
+
+<section id="home" class="page active">
+<div class="banner">
+<div class="slider" id="slider">
+<div class="slide s1">عروض متجر حسين للكوزمتك 💄</div>
+<div class="slide s2">طلب تكسي ومندوب توصيل سريع 🛵</div>
+<div class="slide s3">أفضل الخضروات والفواكه الطازجة 🧺</div>
+</div>
+</div>
+
+<div class="title">الأقسام الرئيسية</div>
+<div class="categories">
+<div class="cat" onclick="category('الكوزمتك والجمال','💄')"><i>💄</i><b>كوزمتك</b></div>
+<div class="cat" onclick="category('المطاعم','🍔')"><i>🍔</i><b>مطاعم</b></div>
+<div class="cat" onclick="category('الخضروات والفواكه','🥦')"><i>🥦</i><b>خضروات</b></div>
+<div class="cat" onclick="category('الماركت والغذائية','🛒')"><i>🛒</i><b>ماركت</b></div>
+<div class="cat" onclick="go('taxi')"><i>🚕</i><b>تكسي</b></div>
+<div class="cat" onclick="category('الصيدليات','💊')"><i>💊</i><b>صيدليات</b></div>
+<div class="cat" onclick="category('المخابز والحلويات','🥐')"><i>🥐</i><b>مخابز</b></div>
+<div class="cat" onclick="category('الخدمات','🔧')"><i>🔧</i><b>خدمات</b></div>
+</div>
+
+<div class="title">متاجر مقترحة</div>
+<div id="homeStores" class="stores"></div>
+
+<div class="title">منتجات مميزة</div>
+<div id="featured" class="grid"></div>
+</section>
+
+<section id="category" class="page">
+<div class="title" id="catTitle">الأقسام</div>
+<div id="catStores" class="stores"></div>
+</section>
+
+<section id="store" class="page">
+<div class="card">
+<h2 id="storeTitle"></h2>
+<p id="storeDesc" style="color:#667069;margin-top:6px"></p>
+</div>
+<div id="storeProducts" class="grid"></div>
+</section>
+
+<section id="cart" class="page">
+<div class="title">🛒 السلة</div>
+<div id="cartBox" class="card"></div>
+</section>
+
+<section id="orders" class="page">
+<div class="title">📦 طلباتي ولوحة الإدارة</div>
+<div id="ordersBox" class="card"></div>
+</section>
+
+<section id="taxi" class="page">
+<div class="card">
+<h2 style="color:var(--red);margin-bottom:14px">🚕 طلب تكسي / توصيل</h2>
+<label>نقطة الانطلاق</label>
+<input id="from" placeholder="موقعي الحالي">
+<label>الوجهة أو التفاصيل</label>
+<input id="to" placeholder="إلى أين؟ أو تفاصيل الطلب">
+<label>الكروة المقترحة (د.ع)</label>
+<input id="fare" type="number" placeholder="5000">
+<label>الوقت المطلوب</label>
+<select id="time">
+<option>خلال 10 دقائق</option>
+<option>خلال 20 دقيقة</option>
+<option>خلال 30 دقيقة</option>
+<option>خلال ساعة</option>
+</select>
+<button class="btn" onclick="taxiOrder()">إرسال الطلب للـ Firebase</button>
+</div>
+</section>
+
+<section id="location" class="page">
+<div class="card">
+<h2 style="color:var(--red)">📍 موقعي</h2>
+<p style="color:#667069;margin:6px 0">حدد موقعك الحالي على الخريطة.</p>
+<div id="map"></div>
+<button class="btn" onclick="gps()">تحديد موقعي الآن GPS</button>
+</div>
+</section>
+
+<nav class="nav">
+<div id="n-home" class="active" onclick="go('home')"><span>🏠</span>الرئيسية</div>
+<div id="n-category" onclick="go('category')"><span>🔲</span>الأقسام</div>
+<div id="n-cart" onclick="go('cart')"><span>🛒</span>السلة</div>
+<div id="n-orders" onclick="go('orders')"><span>📦</span>طلباتي</div>
+<div id="n-auth" onclick="go('auth')"><span>👤</span>حسابي</div>
+</nav>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBrfnNSW9SjxHiDd7NEb89K3CoCrS1Oe88",
+    authDomain: "dkfk-c286c.firebaseapp.com",
+    projectId: "dkfk-c286c",
+    storageBucket: "dkfk-c286c.firebasestorage.app",
+    messagingSenderId: "716392390350",
+    appId: "1:716392390350:web:fb6abc7b85757e40fdba9f",
+    measurementId: "G-EMX5BDQRFF"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// التحقق من وجود المستخدم مسجل مسبقاً بالذاكرة
+window.addEventListener('DOMContentLoaded', () => {
+    const savedUser = localStorage.getItem("absher_user");
+    if(savedUser) {
+        document.getElementById("welcomeScreen").style.display = "none";
+        document.getElementById("authScreen").style.display = "none";
+    }
+});
+
+window.goToAuth = function() {
+    document.getElementById("welcomeScreen").style.display = "none";
+    document.getElementById("authScreen").style.display = "flex";
+}
+
+window.saveUserAndEnter = function() {
+    const name = document.getElementById("userNameInput").value.trim();
+    const phone = document.getElementById("userPhoneInput").value.trim();
+
+    if(!name || !phone) {
+        toast("يرجى إدخال الاسم ورقم الهاتف");
+        return;
+    }
+
+    const user = { name, phone };
+    localStorage.setItem("absher_user", JSON.stringify(user));
+    document.getElementById("authScreen").style.display = "none";
+    toast("مرحباً بك في تطبيق أبشر 🎉");
+}
+
+const data = {
+    "الكوزمتك والجمال":[
+        {name:"كوزمتك حسين",desc:"مستحضرات تجميل وعناية",icon:"💄",rating:"4.9"},
+        {name:"كوزمتك روز",desc:"عطور ومكياج",icon:"💋",rating:"4.8"},
+        {name:"كوزمتك لمسة",desc:"عناية بالبشرة والشعر",icon:"🧴",rating:"4.7"}
+    ],
+    "المطاعم":[
+        {name:"مطعم الطيبين",desc:"وجبات عراقية",icon:"🍗",rating:"4.9"},
+        {name:"برغر هاوس",desc:"برغر ووجبات سريعة",icon:"🍔",rating:"4.8"},
+        {name:"بيتزا تايم",desc:"بيتزا ومقبلات",icon:"🍕",rating:"4.7"}
+    ],
+    "الخضروات والفواكه":[
+        {name:"سوق الخيرات",desc:"خضروات وفواكه طازجة",icon:"🥦",rating:"4.8"},
+        {name:"جنة الفواكه",desc:"فواكه يومية",icon:"🍎",rating:"4.7"}
+    ],
+    "الماركت والغذائية":[
+        {name:"ماركت الرافدين",desc:"مواد غذائية ومنزلية",icon:"🛒",rating:"4.9"},
+        {name:"بقالة النور",desc:"بقالة ومواد غذائية",icon:"🛍️",rating:"4.7"},
+        {name:"ماركت أبو علي",desc:"مواد غذائية ومشروبات",icon:"🏪",rating:"4.6"}
+    ],
+    "الصيدليات":[
+        {name:"صيدلية الشفاء",desc:"أدوية ومستلزمات طبية",icon:"💊",rating:"4.9"},
+        {name:"صيدلية الحياة",desc:"صيدلية متكاملة",icon:"⚕️",rating:"4.8"}
+    ],
+    "المخابز والحلويات":[
+        {name:"مخبز السعادة",desc:"خبز ومعجنات يومية",icon:"🥐",rating:"4.8"},
+        {name:"حلويات الأمير",desc:"حلويات وكيك",icon:"🍰",rating:"4.9"}
+    ],
+    "الخدمات":[
+        {name:"خدمات البيت",desc:"صيانة وخدمات منزلية",icon:"🔧",rating:"4.7"},
+        {name:"مركز التقنية",desc:"موبايلات وصيانة إلكترونيات",icon:"📱",rating:"4.8"}
+    ]
+};
+
+const products = {
+    "كوزمتك حسين":[
+        {name:"عطر نسائي",price:15000,icon:"🌸"},
+        {name:"كريم وجه",price:10000,icon:"🧴"},
+        {name:"روج",price:7500,icon:"💄"},
+        {name:"شامبو",price:8000,icon:"🧴"}
+    ],
+    "كوزمتك روز":[
+        {name:"عطر روز",price:18000,icon:"🌹"},
+        {name:"ماسكارا",price:9000,icon:"👁️"},
+        {name:"بودرة",price:12000,icon:"💄"}
+    ],
+    "كوزمتك لمسة":[
+        {name:"سيروم البشرة",price:15000,icon:"🧴"},
+        {name:"كريم ترطيب",price:9000,icon:"✨"}
+    ],
+    "مطعم الطيبين":[
+        {name:"كباب عراقي",price:10000,icon:"🍢"},
+        {name:"تمن ودجاج",price:9000,icon:"🍗"},
+        {name:"برياني",price:8000,icon:"🍚"}
+    ],
+    "برغر هاوس":[
+        {name:"برغر لحم",price:7500,icon:"🍔"},
+        {name:"تشكن برغر",price:7000,icon:"🍔"},
+        {name:"بطاطا",price:3000,icon:"🍟"}
+    ],
+    "بيتزا تايم":[
+        {name:"بيتزا دجاج",price:12000,icon:"🍕"},
+        {name:"بيتزا خضار",price:10000,icon:"🍕"}
+    ],
+    "سوق الخيرات":[
+        {name:"طماطة",price:2000,icon:"🍅"},
+        {name:"خيار",price:1500,icon:"🥒"},
+        {name:"موز",price:3000,icon:"🍌"},
+        {name:"تفاح",price:4000,icon:"🍎"}
+    ],
+    "جنة الفواكه":[
+        {name:"برتقال",price:3500,icon:"🍊"},
+        {name:"رمان",price:5000,icon:"🍎"}
+    ],
+    "ماركت الرافدين":[
+        {name:"رز",price:3000,icon:"🍚"},
+        {name:"زيت",price:5000,icon:"🫙"},
+        {name:"حليب",price:2000,icon:"🥛"}
+    ],
+    "بقالة النور":[
+        {name:"بيبسي",price:1000,icon:"🥤"},
+        {name:"ماء",price:500,icon:"💧"},
+        {name:"بسكويت",price:1500,icon:"🍪"}
+    ],
+    "ماركت أبو علي":[
+        {name:"شاي",price:4000,icon:"🍵"},
+        {name:"سكر",price:1500,icon:"🍚"}
+    ],
+    "صيدلية الشفاء":[
+        {name:"فيتامينات",price:10000,icon:"💊"},
+        {name:"مستلزمات طبية",price:5000,icon:"🩹"}
+    ],
+    "صيدلية الحياة":[
+        {name:"فيتامين C",price:8000,icon:"💊"},
+        {name:"كمامات",price:3000,icon:"😷"}
+    ],
+    "مخبز السعادة":[
+        {name:"صمون",price:500,icon:"🥖"},
+        {name:"كرواسون",price:1500,icon:"🥐"}
+    ],
+    "حلويات الأمير":[
+        {name:"كيك شوكولاتة",price:10000,icon:"🍰"},
+        {name:"بقلاوة",price:8000,icon:"🍯"}
+    ],
+    "خدمات البيت":[
+        {name:"صيانة كهرباء",price:15000,icon:"🔧"},
+        {name:"صيانة سباكة",price:20000,icon:"🛠️"}
+    ],
+    "مركز التقنية":[
+        {name:"شاحن سريع",price:10000,icon:"🔌"},
+        {name:"كيبل شحن",price:5000,icon:"🔌"}
+    ]
+};
+
+window.toast = function(message){
+    const t = document.getElementById("toast");
+    t.textContent = message;
+    t.classList.add("show");
+    clearTimeout(window.toastTimer);
+    window.toastTimer = setTimeout(()=>{ t.classList.remove("show"); }, 2500);
+}
+
+window.go = function(page){
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    const target = document.getElementById(page);
+    if(target) target.classList.add("active");
+
+    document.querySelectorAll(".nav div").forEach(n => n.classList.remove("active"));
+    const nav = document.getElementById("n-" + page);
+    if(nav) nav.classList.add("active");
+
+    if(page === "cart") renderCart();
+    if(page === "orders") renderFirebaseOrders();
+    if(page === "location") setTimeout(initMap, 100);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+window.category = function(name, icon){
+    document.getElementById("catTitle").textContent = icon + " " + name;
+    renderStores(data[name] || [], "catStores");
+    go("category");
+}
+
+function renderStores(list, target){
+    const box = document.getElementById(target);
+    if(!box) return;
+    box.innerHTML = "";
+    if(!list.length){
+        box.innerHTML = `<div class="empty">لا توجد متاجر حالياً</div>`;
+        return;
+    }
+    list.forEach(store => {
+        const div = document.createElement("div");
+        div.className = "store";
+        div.onclick = () => openStore(store.name);
+        div.innerHTML = `
+            <div class="avatar">${store.icon}</div>
+            <div class="info">
+                <strong>${store.name}</strong>
+                <small>${store.desc}</small>
+                <div class="rating">⭐ ${store.rating}</div>
+            </div>
+            <div>›</div>
+        `;
+        box.appendChild(div);
+    });
+}
+
+function openStore(name){
+    document.getElementById("storeTitle").textContent = "🏪 " + name;
+    document.getElementById("storeDesc").textContent = "تصفح منتجات هذا المتجر واختر ما يناسبك.";
+    renderProducts(products[name] || [], "storeProducts", name);
+    go("store");
+}
+
+function renderProducts(list, target, storeName){
+    const box = document.getElementById(target);
+    if(!box) return;
+    box.innerHTML = "";
+    if(!list.length){
+        box.innerHTML = `<div class="empty">لا توجد منتجات حالياً</div>`;
+        return;
+    }
+    list.forEach((product, index) => {
+        const div = document.createElement("div");
+        div.className = "product";
+        div.innerHTML = `
+            <div class="pic">${product.icon}</div>
+            <strong>${product.name}</strong>
+            <div class="price">${Number(product.price).toLocaleString("ar-IQ")} د.ع</div>
+            <button class="btn" onclick="add('${storeName}', ${index})">إضافة للسلة</button>
+        `;
+        box.appendChild(div);
+    });
+}
+
+let cart = JSON.parse(localStorage.getItem("absher_cart") || "[]");
+function saveCart(){ localStorage.setItem("absher_cart", JSON.stringify(cart)); }
+
+window.add = function(storeName, index){
+    const list = products[storeName];
+    if(!list || !list[index]) return;
+    const product = list[index];
+    const existing = cart.find(item => item.store === storeName && item.name === product.name);
+    if(existing){ existing.qty++; }
+    else{
+        cart.push({ store: storeName, name: product.name, price: Number(product.price), icon: product.icon, qty: 1 });
+    }
+    saveCart();
+    toast("تمت إضافة " + product.name + " للسلة 🛒");
+}
+
+function renderCart(){
+    const box = document.getElementById
