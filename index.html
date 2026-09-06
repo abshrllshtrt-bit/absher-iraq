@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق التوصيل السريع - المنصة المتكاملة</title>
+    <style>
+        body {
+            font-family: Tahoma, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+        }
+        /* شريط التنقل العلوي لتطبيق الموبايل */
+        .navbar {
+            background-color: #d9534f;
+            color: white;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar h1 { margin: 0; font-size: 16px; }
+        .nav-btns {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+        }
+        .nav-btns button {
+            background: white;
+            color: #d9534f;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .nav-btns button.active {
+            background: #c9302c;
+            color: white;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        /* إخفاء وإظهار الشاشات بسلاسة */
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        input, select, textarea, button.submit-btn {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button.submit-btn {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button.submit-btn:hover { background-color: #c9302c; }
+
+        /* الأقسام والإعلانات */
+        .grid-sections {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .section-card {
+            background: #fff5f5;
+            border: 1px solid #f5c6cb;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            color: #d9534f;
+        }
+        .ads-banner {
+            background: #ffefc4;
+            border: 1px solid #ffeeba;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        /* الجداول ولوحة الإدارة */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            font-size: 13px;
+        }
+        th { background-color: #d9534f; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        .policy-box {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #555;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- شريط التطبيق المتنقل -->
+    <div class="navbar">
+        <h1>📦 توصيل العراق</h1>
+        <div class="nav-btns">
+            <button id="btnOrder" class="active" onclick="switchScreen('orderScreen')">الطلب</button>
+            <button id="btnSections" onclick="switchScreen('sectionsScreen')">الأقسام</button>
+            <button id="btnMap" onclick="switchScreen('mapScreen')">الخريطة</button>
+            <button id="btnPolicy" onclick="switchScreen('policyScreen')">السياسة</button>
+            <button id="btnAdmin" onclick="switchScreen('adminScreen'); loadRequests();">الإدارة</button>
+        </div>
+    </div>
+
+    <!-- 1. شاشة طلب الزبون -->
+    <div id="orderScreen" class="container screen active">
+        <h2>اطلب خدمتك الآن</h2>
+        <div class="ads-banner">📢 إعلان: توصيل مجاني للطلب الأول ضمن مناطق المدينة!</div>
+        <p>املأ البيانات أدناه وسيتصل بك المندوب فوراً</p>
+        
+        <form id="requestForm">
+            <input type="text" id="fullName" placeholder="اسم الزبون الكامل" required>
+            <input type="tel" id="phoneNumber" placeholder="رقم الهاتف (مثال: 07xxxxxxxxx)" required>
+            <input type="text" id="serviceType" placeholder="تفاصيل الطلب (العنوان الدقيق / المطعم / الوجبة)" required>
+            <button type="submit" class="submit-btn">إرسال الطلب للـ Firebase</button>
+        </form>
+        <p id="statusMsg" style="margin-top: 15px; font-weight: bold; text-align: center;"></p>
+    </div>
+
+    <!-- 2. شاشة أقسام التطبيق -->
+    <div id="sectionsScreen" class="container screen">
+        <h2>أقسام الخدمات</h2>
+        <p>اختر القسم المناسب لطلبك:</p>
+        <div class="grid-sections">
+            <div class="section-card">🍔 مطاعم ومقاهي</div>
+            <div class="section-card">🛒 سوبر ماركت</div>
+            <div class="section-card">💊 صيدليات وعلاجات</div>
+            <div class="section-card">📦 طرود وهدايا</div>
+        </div>
+    </div>
+
+    <!-- 3. شاشة خريطة الموقع -->
+    <div id="mapScreen" class="container screen">
+        <h2>خريطة وتغطية العمل</h2>
+        <p>نحن نعمل ونغطي كافة مناطق المدينة بخدمة سريعة على مدار الساعة.</p>
+        <div style="background: #e9ecef; height: 200px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #6c757d; font-weight: bold;">
+            📍 [ خريطة التغطية الجغرافية مفعلة ]
+        </div>
+    </div>
+
+    <!-- 4. شاشة سياسة الاستخدام -->
+    <div id="policyScreen" class="container screen">
+        <h2>سياسة الاستخدام والخصوصية</h2>
+        <div class="policy-box">
+            <p>1. يحافظ التطبيق على سرية بيانات الزبائن وأرقام هواتفهم.</p>
+            <p>2. يتم اعتماد الطلبات بجدية، ويتحمل المستخدم مسؤولية صحة رقم الهاتف والعنوان.</p>
+            <p>3. خدمة التوصيل مسؤولة عن توصيل الطلب بالسرعة الممكنة وضمان سلامته.</p>
+        </div>
+    </div>
+
+    <!-- 5. شاشة لوحة الإدارة المتكاملة -->
+    <div id="adminScreen" class="container screen">
+        <h2>لوحة التحكم بالطلبات</h2>
+        <p style="text-align: center;">الطلبات الواردة من قاعدة البيانات مباشرة:</p>
+        
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>الزبون</th>
+                        <th>الهاتف</th>
+                        <th>التفاصيل</th>
+                        <th>الوقت</th>
+                    </tr>
+                </thead>
+                <tbody id="requestsTableBody">
+                    <tr><td colspan="4" style="text-align: center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <button onclick="loadRequests()" style="margin-top: 15px; background: #6c757d; color: white; border: none; padding: 10px; border-radius: 5px; width: 100%; cursor: pointer;">🔄 تحديث الطلبات</button>
+    </div>
+
+    <!-- Firebase Scripts & App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrfnNSW9SjxHiDd7NEb89K3CoCrS1Oe88",
+            authDomain: "dkfk-c286c.firebaseapp.com",
+            projectId: "dkfk-c286c",
+            storageBucket: "dkfk-c286c.firebasestorage.app",
+            messagingSenderId: "716392390350",
+            appId: "1:716392390350:web:fb6abc7b85757e40fdba9f",
+            measurementId: "G-EMX5BDQRFF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // نظام التنقل السلس بين الشاشات
+        window.switchScreen = function(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btns button').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(screenId).classList.add('active');
+            
+            if(screenId === 'orderScreen') document.getElementById('btnOrder').classList.add('active');
+            if(screenId === 'sectionsScreen') document.getElementById('btnSections').classList.add('active');
+            if(screenId === 'mapScreen') document.getElementById('btnMap').classList.add('active');
+            if(screenId === 'policyScreen') document.getElementById('btnPolicy').classList.add('active');
+            if(screenId === 'adminScreen') document.getElementById('btnAdmin').classList.add('active');
+        }
+
+        // إرسال الطلب وحفظه في Firebase Firestore
+        const form = document.getElementById('requestForm');
+        const statusMsg = document.getElementById('statusMsg');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('fullName').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const serviceType = document.getElementById('serviceType').value;
+
+            statusMsg.style.color = "blue";
+            statusMsg.textContent = "جاري إرسال الطلب وإفراغه في القاعدة...";
+
+            try {
+                await addDoc(collection(db, "requests"), {
+                    fullName: fullName,
+                    phoneNumber: phoneNumber,
+                    serviceType: serviceType,
+                    timestamp: new Date()
+                });
+                statusMsg.style.color = "green";
+                statusMsg.textContent = "تم إرسال طلب التوصيل وحفظه في Firebase بنجاح!";
+                form.reset();
+            } catch (error) {
+                statusMsg.style.color = "red";
+                statusMsg.textContent = "حدث خطأ في الإرسال، تأكد من الاتصال.";
+                console.error("Error adding document: ", error);
+            }
+        });
+
+        // جلب وقراءة الطلبات للوحة الإدارة
+        window.loadRequests = async function() {
+            const tableBody = document.getElementById('requestsTableBody');
+            tableBody.innerHTML = '<tr><td colspan="4">جاري تحميل البيانات من السيرفر...</td></tr>';
+
+            try {
+                const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="4">لا توجد طلبات مسجلة حالياً.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const dateStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString('ar-IQ', {hour: '2-digit', minute:'2-digit'}) : 'وقت حديث';
+                    
+                    const row = `
+                        <tr>
+                            <td><b>${data.fullName || ''}</b></td>
+                            <td><a href="tel:${data.phoneNumber}" style="color: #d9534f; font-weight: bold; text-decoration: none;">📞 ${data.phoneNumber || ''}</a></td>
+                            <td>${data.serviceType || ''}</td>
+                            <td>${dateStr}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error("Error loading requests: ", error);
+                tableBody.innerHTML = '<tr><td colspan="4" style="color: red;">خطأ في الاتصال بقاعدة البيانات.</td></tr>';
+            }
+        }
+    </script>
+</body>
+  </html>
+  
