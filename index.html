@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أبشر العراق - Absher Iraq</title>
+    <style>
+        body {
+            font-family: Tahoma, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding-bottom: 70px;
+            direction: rtl;
+        }
+        /* شاشة تسجيل الدخول */
+        #authScreen {
+            max-width: 400px;
+            margin: 80px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        #authScreen h2 { color: #d9534f; margin-bottom: 5px; }
+        
+        /* التطبيق الرئيسي */
+        .app-container { display: none; }
+        .app-container.active { display: block; }
+        
+        .header {
+            background: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-weight: bold;
+            color: #d9534f;
+        }
+        
+        .search-box {
+            padding: 10px 15px;
+            background: white;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            background: #f9f9f9;
+            box-sizing: border-box;
+            text-align: right;
+            outline: none;
+        }
+
+        .hero-banner {
+            background: #d9534f;
+            color: white;
+            margin: 15px;
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(217, 83, 79, 0.3);
+        }
+
+        .section-title {
+            margin: 20px 15px 10px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* الأقسام بشبكة مرتبة */
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 0 15px;
+        }
+        .menu-item {
+            background: white;
+            padding: 15px 10px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .menu-item:active { transform: scale(0.95); }
+        .menu-item span { display: block; font-size: 24px; margin-bottom: 5px; }
+        .menu-item p { margin: 0; font-size: 12px; color: #333; font-weight: bold; }
+
+        /* الشاشات الداخلية للتنقل */
+        .screen { display: none; padding: 15px; }
+        .screen.active { display: block; }
+
+        input, textarea, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button.main-btn {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* شريط التنقل السفلي الثابت */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .nav-item {
+            background: none;
+            border: none;
+            color: #777;
+            font-size: 11px;
+            cursor: pointer;
+            text-align: center;
+            flex: 1;
+            margin: 0;
+            padding: 0;
+        }
+        .nav-item span { display: block; font-size: 20px; }
+        .nav-item.active { color: #d9534f; font-weight: bold; }
+
+        /* جدول لوحة الإدارة */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 12px; }
+        th { background: #d9534f; color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. شاشة تسجيل الدخول بالاسم الثلاثي ورقم الهاتف -->
+    <div id="authScreen">
+        <h2>أبشر العراق</h2>
+        <p style="color: #666; font-size: 13px;">أدخل بياناتك للبدء في استخدام التطبيق</p>
+        <form id="loginForm">
+            <input type="text" id="regFullName" placeholder="الاسم الثلاثي واللقب" required>
+            <input type="tel" id="regPhone" placeholder="رقم الهاتف (07xxxxxxxx)" required>
+            <button type="submit" class="main-btn" style="margin-top: 15px;">دخول للتطبيق</button>
+        </form>
+    </div>
+
+    <!-- 2. واجهة التطبيق الرئيسية (تظهر بعد التسجيل) -->
+    <div id="appContainer" class="app-container">
+        
+        <!-- الهيدر العلوي -->
+        <div class="header">
+            <span>العراق 🇮🇶</span>
+            <span>أبشر العراق</span>
+            <span id="userDisplayName" style="font-size: 12px; color: #555;"></span>
+        </div>
+
+        <!-- شريط البحث -->
+        <div class="search-box">
+            <input type="text" placeholder="ابحث عن منتج، مطعم، أو قسم...">
+        </div>
+
+        <!-- شاشات التنقل -->
+        
+        <!-- شاشة الرئيسية -->
+        <div id="homeScreen" class="screen active">
+            <div class="hero-banner">
+                🚗 طلب تكسي ومندوب توصيل سريع 🍔
+            </div>
+
+            <div class="section-title">الأقسام الرئيسية</div>
+            <div class="grid-menu">
+                <div class="menu-item" onclick="switchScreen('taxiScreen')">
+                    <span>🚕</span>
+                    <p>تكسي</p>
+                </div>
+                <div class="menu-item" onclick="switchScreen('marketScreen')">
+                    <span>🛒</span>
+                    <p>ماركت</p>
+                </div>
+                <div class="menu-item" onclick="switchScreen('marketScreen')">
+                    <span>🍔</span>
+                    <p>مطاعم</p>
+                </div>
+                <div class="menu-item" onclick="switchScreen('marketScreen')">
+                    <span>💄</span>
+                    <p>كوزمتك</p>
+                </div>
+                <div class="menu-item" onclick="switchScreen('profileScreen')">
+                    <span>👤</span>
+                    <p>حسابي</p>
+                </div>
+                <div class="menu-item" onclick="switchScreen('taxiScreen')">
+                    <span>🛵</span>
+                    <p>مندوب</p>
+                </div>
+                <div class="menu-item" onclick="switchScreen('marketScreen')">
+                    <span>📱</span>
+                    <p>إلكترونيات</p>
+                </div>
+                <div class="menu-item" onclick="switchScreen('marketScreen')">
+                    <span>💊</span>
+                    <p>صيدلية</p>
+                </div>
+            </div>
+
+            <div class="section-title">عروض مميزة اليوم</div>
+            <div style="background: white; padding: 15px; border-radius: 12px; margin: 0 15px; text-align: center; color: #777; font-size: 13px;">
+                لا توجد عروض حالياً، تابعنا قريباً!
+            </div>
+        </div>
+
+        <!-- شاشة طلب التكسي أو المندوب -->
+        <div id="taxiScreen" class="screen">
+            <h2>طلب توصيل أو تكسي</h2>
+            <form id="orderForm">
+                <input type="text" id="orderDetailsService" placeholder="وجهتك أو تفاصيل الطلب (مثلاً: مطعم الفارس -> الحرية)" required>
+                <button type="submit" class="main-btn">تأكيد وإرسال الطلب</button>
+            </form>
+            <p id="orderStatus" style="font-weight: bold; text-align: center; margin-top: 10px;"></p>
+        </div>
+
+        <!-- شاشة الماركت / الأقسام العامة -->
+        <div id="marketScreen" class="screen">
+            <h2>قسم التسوق والخدمات</h2>
+            <p>اختر الخدمة المطلوبة وسيتصل بك المندوب فوراً لتثبيت طلبك.</p>
+            <button class="main-btn" onclick="switchScreen('taxiScreen')">اطلب الآن</button>
+        </div>
+
+        <!-- شاشة الخريطة -->
+        <div id="mapScreen" class="screen">
+            <h2>خريطة وتغطية التطبيق</h2>
+            <div style="background: #e9ecef; height: 250px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #666; font-weight: bold;">
+                📍 موقعك الحالي مغطى بالكامل
+            </div>
+        </div>
+
+        <!-- شاشة حسابي ولوحة الإدارة -->
+        <div id="profileScreen" class="screen">
+            <h2>الملف الشخصي والطلبات</h2>
+            <div id="userInfoBox" style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;"></div>
+            
+            <h3 style="font-size: 14px; color: #d9534f;">سجل الطلبات الواردة (لوحة الإدارة):</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الاسم الثلاثي</th>
+                            <th>الهاتف</th>
+                            <th>الطلب</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody">
+                        <tr><td colspan="3">جاري التحميل...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <button onclick="loadAdminRequests()" style="background: #6c757d; color: white; margin-top: 10px;">🔄 تحديث الطلبات</button>
+        </div>
+
+        <!-- شاشة الشروط -->
+        <div id="policyScreen" class="screen">
+            <h2>الشروط وسياسة الاستخدام</h2>
+            <p style="font-size: 13px; color: #555; line-height: 1.6;">
+                1. يلتزم المستخدم بتقديم اسم ورقم هاتف صحيحين.<br>
+                2. التطبيق وسيط بين الزبون والمندوب لتسهيل عمليات التوصيل السريع.<br>
+                3. الحفاظ على سرية المعلومات الشخصية لجميع المستخدمين.
+            </p>
+        </div>
+
+        <!-- شريط التنقل السفلي الثابت -->
+        <div class="bottom-nav">
+            <button class="nav-item active" id="navHome" onclick="switchScreen('homeScreen')">
+                <span>🏠</span>الرئيسية
+            </button>
+            <button class="nav-item" id="navTaxi" onclick="switchScreen('taxiScreen')">
+                <span>🚕</span>التكسي
+            </button>
+            <button class="nav-item" id="navMap" onclick="switchScreen('mapScreen')">
+                <span>📍</span>الخريطة
+            </button>
+            <button class="nav-item" id="navProfile" onclick="switchScreen('profileScreen'); loadAdminRequests();">
+                <span>👤</span>حسابي
+            </button>
+            <button class="nav-item" id="navPolicy" onclick="switchScreen('policyScreen')">
+                <span>📜</span>الشروط
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK & Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrfnNSW9SjxHiDd7NEb89K3CoCrS1Oe88",
+            authDomain: "dkfk-c286c.firebaseapp.com",
+            projectId: "dkfk-c286c",
+            storageBucket: "dkfk-c286c.firebasestorage.app",
+            messagingSenderId: "716392390350",
+            appId: "1:716392390350:web:fb6abc7b85757e40fdba9f",
+            measurementId: "G-EMX5BDQRFF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // متغيرات الحفظ المحلي للمستخدم
+        let currentUser = JSON.parse(localStorage.getItem('absher_user')) || null;
+
+        const authScreen = document.getElementById('authScreen');
+        const appContainer = document.getElementById('appContainer');
+
+        if(currentUser) {
+            authScreen.style.display = 'none';
+            appContainer.classList.add('active');
+            document.getElementById('userDisplayName').textContent = currentUser.name;
+            document.getElementById('userInfoBox').innerHTML = `<b>الاسم:</b> ${currentUser.name}<br><b>الهاتف:</b> ${currentUser.phone}`;
+        }
+
+        // تسجيل الدخول
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regFullName').value;
+            const phone = document.getElementById('regPhone').value;
+
+            currentUser = { name, phone };
+            localStorage.setItem('absher_user', JSON.stringify(currentUser));
+
+            authScreen.style.display = 'none';
+            appContainer.classList.add('active');
+            document.getElementById('userDisplayName').textContent = name;
+            document.getElementById('userInfoBox').innerHTML = `<b>الاسم:</b> ${name}<br><b>الهاتف:</b> ${phone}`;
+        });
+
+        // التنقل بين الشاشات
+        window.switchScreen = function(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(screenId).classList.add('active');
+            
+            if(screenId === 'homeScreen') document.getElementById('navHome').classList.add('active');
+            if(screenId === 'taxiScreen' || screenId === 'marketScreen') document.getElementById('navTaxi').classList.add('active');
+            if(screenId === 'mapScreen') document.getElementById('navMap').classList.add('active');
+            if(screenId === 'profileScreen') document.getElementById('navProfile').classList.add('active');
+            if(screenId === 'policyScreen') document.getElementById('navPolicy').classList.add('active');
+        }
+
+        // إرسال الطلب إلى Firebase
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const details = document.getElementById('orderDetailsService').value;
+            const statusMsg = document.getElementById('orderStatus');
+
+            statusMsg.style.color = "blue";
+            statusMsg.textContent = "جاري إرسال الطلب...";
+
+            try {
+                await addDoc(collection(db, "requests"), {
+                    fullName: currentUser ? currentUser.name : 'مستخدم مجهول',
+                    phoneNumber: currentUser ? currentUser.phone : 'بدون رقم',
+                    serviceType: details,
+                    timestamp: new Date()
+                });
+                statusMsg.style.color = "green";
+                statusMsg.textContent = "تم إرسال طلبك بنجاح وسنتصل بك فوراً!";
+                document.getElementById('orderForm').reset();
+            } catch (error) {
+                statusMsg.style.color = "red";
+                statusMsg.textContent = "حدث خطأ في الإرسال، تحقق من الإنترنت.";
+                console.error(error);
+            }
+        });
+
+        // جلب الطلبات للوحة التحكم (صفحة حسابي / الإدارة)
+        window.loadAdminRequests = async function() {
+            const tableBody = document.getElementById('adminTableBody');
+            tableBody.innerHTML = '<tr><td colspan="3">جاري التحميل...</td></tr>';
+
+            try {
+                const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="3">لا توجد طلبات مسجلة.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const row = `
+                        <tr>
+                            <td><b>${data.fullName || ''}</b></td>
+                            <td><a href="tel:${data.phoneNumber}" style="color: #d9534f; text-decoration: none;">📞 ${data.phoneNumber || ''}</a></td>
+                            <td>${data.serviceType || ''}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error(error);
+                tableBody.innerHTML = '<tr><td colspan="3" style="color: red;">خطأ في جلب البيانات.</td></tr>';
+            }
+        }
+    </script>
+</body>
+              </html>
+              
