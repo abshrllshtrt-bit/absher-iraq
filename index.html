@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أبشر العراق - Absher Iraq</title>
+    <!-- إدراج مكتبة قراءة الخرائط Leaflet JS & CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- تتضمن مكتبات قاعدة البيانات الأساسية Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+        // إعدادات مشروعك الحقيقي المستخرجة من الفايربيس //
+        const firebaseConfig = {
+            apiKey: "AIzaSyASMyeaxRQXs8LHLYgCs9JqW5x7v...",
+            authDomain: "abashi-aaaee.firebaseapp.com",
+            databaseURL: "https://abasi-aaaee-default-rtdb.firebaseio.com",
+            projectId: "abasi-aaaee",
+            storageBucket: "abasi-aaaee.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window.db = db;
+    </script>
+    
+    <style>
+        :root {
+            --primary: #046A38;
+            --secondary: #C8102E;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --gray: #9CA3AF;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            padding-bottom: 70px;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary), #024a25);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .container {
+            padding: 15px;
+            max-width: 600px;
+            margin: auto;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 5px;
+        }
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 12px;
+        }
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        nav button {
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        nav button.active {
+            color: var(--primary);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>أبشر العراق</h1>
+        <p>منصة الخدمات الموحدة</p>
+    </header>
+
+    <div class="container">
+        <!-- صفحة الرئيسية -->
+        <div id="home-page" class="page active">
+            <div class="section-title">خدمات عامة سريعة</div>
+            <div class="card">
+                <h3>أهلاً بك في تطبيق أبشر العراق</h3>
+                <p>اختر الخدمة المطلوبة من القائمة أدناه لإتمامها بكل سهولة.</p>
+            </div>
+        </div>
+
+        <!-- صفحة الطلبات -->
+        <div id="orders-page" class="page">
+            <div class="section-title">الطلبات الحالية</div>
+            <div class="card">
+                <p>لا توجد طلبات نشطة حالياً.</p>
+            </div>
+        </div>
+
+        <!-- صفحة الحساب -->
+        <div id="profile-page" class="page">
+            <div class="section-title">حسابي الشخصي</div>
+            <div class="card">
+                <p>مرحباً بك، يرجى تسجيل الدخول.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- شريط التنقل السفلي -->
+    <nav>
+        <button onclick="switchPage('home', this)" class="active">🏠 الرئيسية</button>
+        <button onclick="switchPage('orders', this)">📋 الطلبات</button>
+        <button onclick="switchPage('profile', this)">👤 الحساب</button>
+    </nav>
+
+    <script>
+        function switchPage(pageName, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(pageName + '-page').classList.add('active');
+            btn.classList.add('active');
+        }
+    </script>
+</body>
+</html>
